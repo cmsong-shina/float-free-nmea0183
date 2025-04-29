@@ -2,6 +2,38 @@
 [![master](https://github.com/nsforth/nmea0183/actions/workflows/rust.yml/badge.svg)](https://github.com/nsforth/nmea0183/actions/workflows/rust.yml)
 # NMEA 0183 parser.
 
+This repository fork of nice [nsforth/nmea0183](https://github.com/nsforth/nmea0183/tree/master) project.
+
+But on ch32v003, MCU which 16KB flash without FPU, it produces (relatively) huge binary so it can not be flashed.
+
+```
+File  .text    Size             Crate Name
+0.2%  13.1%  3.0KiB         [Unknown] main
+0.1%   5.8%  1.3KiB compiler_builtins compiler_builtins::float::div::div
+0.1%   5.4%  1.2KiB compiler_builtins compiler_builtins::float::add::add
+0.1%   4.9%  1.1KiB compiler_builtins compiler_builtins::float::mul::mul
+0.1%   4.5%  1.0KiB              core core::num::dec2flt::<impl core::str::traits::FromStr for f64>::from_str
+0.1%   4.3%   1008B              core core::num::dec2flt::<impl core::str::traits::FromStr for f32>::from_str
+0.1%   3.6%    844B compiler_builtins compiler_builtins::float::div::div
+0.1%   3.4%    804B              core core::num::dec2flt::decimal_seq::parse_decimal_seq
+0.0%   3.1%    728B              core core::num::dec2flt::lemire::compute_float
+0.0%   2.9%    692B              core core::num::dec2flt::lemire::compute_float
+0.0%   2.9%    672B compiler_builtins compiler_builtins::int::specialized_div_rem::u64_div_rem
+0.0%   2.8%    662B              core core::num::dec2flt::parse::parse_number
+0.0%   2.5%    584B compiler_builtins compiler_builtins::float::mul::mul
+0.0%   2.3%    540B              core core::num::dec2flt::decimal_seq::DecimalSeq::left_shift
+0.0%   2.3%    538B              core core::num::dec2flt::lemire::compute_product_approx
+0.0%   2.2%    510B              core core::num::dec2flt::decimal_seq::DecimalSeq::right_shift
+0.0%   1.9%    452B              core core::num::dec2flt::parse::try_parse_digits
+0.0%   1.9%    450B              core <core::str::iter::Split<P> as core::iter::traits::iterator::Iterator>::next
+0.0%   1.7%    398B          nmea0183 nmea0183::coords::Latitude::parse
+0.0%   1.7%    394B          nmea0183 nmea0183::coords::Longitude::parse
+0.4%  26.2%  6.0KiB                   And 124 smaller methods. Use -n N to show more.
+1.6% 100.0% 22.9KiB                   .text section size, the file size is 1.4MiB
+```
+
+So this library aims for binary size at the expense of functionality and accuracy. MCUs with flash space of 32KB or more or FPU have no reason to use this library.
+
 Implemented most used sentences like RMC, VTG, GGA, GLL, GSV, GSA.
 Parser do not use heap memory and relies only on `core`.
 
@@ -9,12 +41,6 @@ You should instantiate [Parser](https://docs.rs/nmea0183/latest/nmea0183/struct.
 If parser accumulates enough data it will return [ParseResult](https://docs.rs/nmea0183/latest/nmea0183/enum.ParseResult.html) on success or `&str` that describing an error.
 
 You do not need to do any preprocessing such as split data to strings or NMEA sentences.
-
-# Optional features
-
-Parser supports Mediatek-related PMTKSPF non-standard sentence. It is disabled by default. Use "mtk" feature if you need it.
-
-If your receiver violates NMEA spec, try disable "strict" feature which enabled by default. For example, without "strict" feature sentence size is set to 120 chars instead of standart NMEA 79 chars.
 
 # Examples
 
